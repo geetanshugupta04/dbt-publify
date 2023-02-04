@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: teleads_sources
+    database: teleads_raw
+    schema: public
+    tables:
+      - name: clicks_trial
+      - name: impressions_trial
