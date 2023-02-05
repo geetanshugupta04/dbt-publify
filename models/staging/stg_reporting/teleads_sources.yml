@@ -7,3 +7,4 @@ sources:
     tables:
       - name: clicks_trial
       - name: impressions_trial
+      - name: bids_trial
