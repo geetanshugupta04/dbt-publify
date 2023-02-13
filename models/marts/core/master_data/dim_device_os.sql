@@ -8,10 +8,6 @@ overall_reporting as (
     select
  
     cast(created_on_bid as date) as date, 
-    hour(created_on_bid) as hour,
-    state, 
-    district,
-    site_domain_category,
     device_os,
     count(created_on_bid) as total_bid_requests,
     count(created_on_imp) as total_impressions,
@@ -21,7 +17,7 @@ overall_reporting as (
     total_impressions / total_bid_requests as impression_rate
 
     from bids_imp_clicks
-    group by date, hour, state, district, site_domain_category, device_os
+    group by device_os, date
 
 )
 

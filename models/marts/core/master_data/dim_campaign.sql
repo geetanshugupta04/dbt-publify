@@ -9,10 +9,7 @@ overall_reporting as (
  
     cast(created_on_bid as date) as date, 
     hour(created_on_bid) as hour,
-    state, 
-    district,
-    site_domain_category,
-    device_os,
+    campaign_id_imp,
     count(created_on_bid) as total_bid_requests,
     count(created_on_imp) as total_impressions,
     count(created_on_click) as total_clicks,
@@ -21,7 +18,7 @@ overall_reporting as (
     total_impressions / total_bid_requests as impression_rate
 
     from bids_imp_clicks
-    group by date, hour, state, district, site_domain_category, device_os
+    group by campaign_id_imp, date, hour
 
 )
 
