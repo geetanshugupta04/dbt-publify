@@ -14,7 +14,8 @@ bid_requests as (
         site_domain_category,
         geometry,
         state,
-        district
+        district,
+        buyer_id as buyer_id_bid
     
     
      from {{ source('teleads_sources', 'bids_trial')}}
