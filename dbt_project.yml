@@ -37,6 +37,11 @@ models:
     staging:
       +schema: staging
       +materialized: view
-    marts:
-      +schema: marts
-      +materialized: table
+    
+    bronze:
+      +schema: bronze
+      +materialized: view
+
+    silver:
+      +schema: silver
+      +materialized: view
