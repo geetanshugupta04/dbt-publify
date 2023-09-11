@@ -1,0 +1,17 @@
+
+
+Problem statement
+
+- Repetion in queries
+- hitting the raw tables every time a query is executed
+- non modularity
+- error prone
+- time inefficiency
+
+Solution to target the above issues
+
+staging --> bronze --> silver --> gold
+
+- whenever a table is updated, refreshing the staging table and taking only the required columns
+- basic manupulation and joins in the bronze and silver tables
+- whenever a report is requested, run only the gold tables
