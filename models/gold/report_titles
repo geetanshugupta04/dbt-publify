@@ -8,6 +8,7 @@ Problem statement
 - error prone
 - time inefficiency
 
+
 Solution to target the above issues
 
 staging --> bronze --> silver --> gold
