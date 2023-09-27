@@ -4,12 +4,10 @@ with
         select
             start_datetime,
             ad_type,
-            make,
-            model,
-            device_os,
+            pincode,
             count
 
-        from vbids_device_hourly_csv
+        from publify_raw.vbids_geo_hourly
 
     )
 
