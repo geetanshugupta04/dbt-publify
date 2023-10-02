@@ -6,21 +6,24 @@ with
 
     device_master as (select * from {{ ref("stg_device_master") }}),
 
-    device_master as (
+    master_merge as (
         select
-            master.id as device_id,
+            master.device_id,
             master.company_id,
-            device.make as device_make,
-            device.model as device_model,
-            company.make as company_make,
-            master.model_name as master_model,
+            device_raw.raw_make,
+            device_raw.raw_model,
+            company.company_make,
+            master.master_model,
             master.device_type,
             master.release_month,
             master.release_year,
             master.cost
-        from device_master as master
+
+        from device_metadata as device_raw
+        left join device_master as master on device_raw.device_id = master.device_id
         left join device_company as company on master.company_id = company.company_id
-        left join device_metadata on master.id = device.device_id
     )
 
-    select * from device_master
+select *
+from master_merge
+where lower(raw_make) = 'lava'

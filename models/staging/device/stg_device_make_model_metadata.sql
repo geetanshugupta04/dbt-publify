@@ -3,8 +3,8 @@ with
 device_metadata as (
   select
     device_id,
-    make as device_make,
-    model as device_model
+    make as raw_make,
+    model as raw_model
   from
     publify_raw.metadata_devicemetadata_csv
 )
