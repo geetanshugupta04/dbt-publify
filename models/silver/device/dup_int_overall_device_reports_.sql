@@ -1,19 +1,29 @@
 with
 
-    bids as (select * from {{ ref("stg_bid_device") }} where make = 'lava'),
+    bids as (select * from {{ ref("stg_bid_device") }}),
 
-    vast as (select * from {{ ref("stg_vast_device") }} where make = 'lava'),
+    vast as (select * from {{ ref("stg_vast_device") }}),
 
-    track as (select * from {{ ref("stg_track_device") }} where make = 'lava'),
+    track as (select * from {{ ref("stg_track_device") }})
 
-    device_os as (select * from {{ ref("stg_device_os_metadata") }}),
+    device_os as (select * from {{ ref("stg_device_os_metadata") }})
 
-    device_company as (select * from {{ ref("stg_device_company_metadata") }}),
+    device_master as (select * from {{ ref("int_device_master") }})
 
-    device_raw as (select * from {{ ref("stg_device_make_model_metadata") }}),
 
-    device_master as (select * from {{ ref("stg_device_master") }}),
+    select * from bids
 
+
+    /*
+    bids_vast as (
+
+        select * from bids 
+    )
+    select * 
+
+
+
+    
     merged as (
         select
             b.date,
@@ -46,72 +56,31 @@ with
     ),
 
     merged_with_device_os as (
-        select m.*, device_os.cleaned_device_os
+        select m.*, dos.cleaned_device_os,
+
         from merged as m
-        left join device_os on m.device_os = device_os.device_os
-
-    ),
-
-    merged_with_device_raw as (
-        select m.*, dr.device_id, dr.raw_make, dr.raw_model
-
-        from merged_with_device_os as m
-        left join
-            device_raw as dr
-            on m.make = dr.raw_make
-            and m.model = dr.raw_model
-    ),
-
-    master_device as (
-
-        select
-            master.device_id,
-            master.company_id,
-            company.company_make,
-            master.master_model,
-            master.device_type,
-            master.release_month,
-            master.release_year,
-            master.cost
-
-        from device_master as master
-        left join device_company as company on master.company_id = company.company_id
+        left join device_os as dos on lower(m.device_os) = lower(dos.device_os)
 
     ),
 
     merged_with_device_master as (
         select
             m.*,
-            master.company_id,
-            master.company_make,
-            master.master_model,
-            master.device_type,
-            master.release_month,
-            master.release_year,
-            master.cost
+            dm.device_make,
+            dm.device_model,
+            dm.company_make,
+            dm.master_model,
+            dm.device_type,
+            dm.release_month,
+            dm.release_year,
+            dm.cost
+        from merged as m
+        left join
+            device_master as dm
+            on lower(m.make) = lower(dm.device_make)
+            and lower(m.model) = lower(dm.device_model)
+    ),
 
-        from merged_with_device_raw as m
-        left join master_device as master on m.device_id = master.device_id
-
-    )
-
-select
-    make,
-    model,
-    cleaned_device_os,
-    raw_make,
-    raw_model,
-    company_make,
-    master_model,
-
-    sum(bid_requests) as bids_bids
-from merged_with_device_master
-group by 1,
-2, 3, 4, 5, 6, 7
-order by
-    1
-
-    /*
     final as (
         select
             date,
@@ -161,6 +130,5 @@ from
     -- metadata_devicemaster
     -- company_id, device_id, model,
     -- device_type, release_month, release_year
-
-    */
     
+*/

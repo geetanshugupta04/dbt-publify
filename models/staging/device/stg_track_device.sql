@@ -2,11 +2,11 @@ with
 
     track as (
         select
-            date(start_datetime at time zone 'Asia/Kolkata') as date,
+            date(start_datetime) as date,
             ad_type,
-            make,
-            model,
-            device_os,
+            lower(make) as make,
+            lower(model) as model,
+            lower(device_os) as device_os,
             sum(impression) as impression,
             sum(creative_view) as creative_view,
             sum(click) as clicks,
@@ -18,11 +18,11 @@ with
             -- and 
             country in ('IND', 'IN', 'in')
         group by
-            date(start_datetime at time zone 'Asia/Kolkata'),
+            date(start_datetime),
             ad_type,
-            make,
-            model,
-            device_os
+            lower(make),
+            lower(model),
+            lower(device_os)
     )
 
 select *
