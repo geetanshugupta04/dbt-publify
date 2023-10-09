@@ -26,4 +26,3 @@ with
 
 select *
 from master_merge
-where lower(raw_make) = 'lava'

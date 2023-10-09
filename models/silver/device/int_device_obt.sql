@@ -1,29 +1,30 @@
 with
 
-    bids as (select * from {{ ref("stg_bid_device") }}),
+    bids as (
+        select *
+        from {{ ref("stg_bid_device") }}
+        where make is not null and model is not null and device_os is not null
+    -- and make = 'lava'
+    ),
 
-    vast as (select * from {{ ref("stg_vast_device") }}),
+    vast as (
+        select *
+        from {{ ref("stg_vast_device") }}
+        where make is not null and model is not null and device_os is not null
+    -- and make = 'lava'
+    ),
 
-    track as (select * from {{ ref("stg_track_device") }})
+    track as (
+        select *
+        from {{ ref("stg_track_device") }}
+        where make is not null and model is not null and device_os is not null
+    -- and make = 'lava'
+    ),
 
-    device_os as (select * from {{ ref("stg_device_os_metadata") }})
+    device_os as (select * from {{ ref("stg_device_os_metadata") }}),
 
-    device_master as (select * from {{ ref("int_device_master") }})
+    device_master as (select * from {{ ref("int_device_master") }}),
 
-
-    select * from bids
-
-
-    /*
-    bids_vast as (
-
-        select * from bids 
-    )
-    select * 
-
-
-
-    
     merged as (
         select
             b.date,
@@ -42,52 +43,54 @@ with
         left join
             vast as v
             on b.date = v.date
-            and lower(b.ad_type) = lower(v.ad_type)
-            and lower(b.make) = lower(v.make)
-            and lower(b.model) = lower(v.model)
-            and lower(b.device_os) = lower(v.device_os)
+            and b.ad_type = v.ad_type
+            and b.make = v.make
+            and b.model = v.model
+            and b.device_os = v.device_os
         left join
             track as t
             on b.date = t.date
-            and lower(b.ad_type) = lower(t.ad_type)
-            and lower(b.make) = lower(t.make)
-            and lower(b.model) = lower(t.model)
-            and lower(b.device_os) = lower(t.device_os)
+            and b.ad_type = t.ad_type
+            and b.make = t.make
+            and b.model = t.model
+            and b.device_os = t.device_os
     ),
 
     merged_with_device_os as (
-        select m.*, dos.cleaned_device_os,
-
+        select m.*, device_os.cleaned_device_os
         from merged as m
-        left join device_os as dos on lower(m.device_os) = lower(dos.device_os)
+        left join device_os on m.device_os = device_os.device_os
 
     ),
 
     merged_with_device_master as (
         select
             m.*,
-            dm.device_make,
-            dm.device_model,
-            dm.company_make,
-            dm.master_model,
-            dm.device_type,
-            dm.release_month,
-            dm.release_year,
-            dm.cost
-        from merged as m
+            master.device_id,
+            master.raw_make,
+            master.raw_model,
+            master.company_make,
+            master.master_model,
+            master.device_type,
+            master.release_month,
+            master.release_year,
+            master.cost
+
+        from merged_with_device_os as m
         left join
-            device_master as dm
-            on lower(m.make) = lower(dm.device_make)
-            and lower(m.model) = lower(dm.device_model)
+            device_master as master
+            on m.make = master.raw_make
+            and m.model = master.raw_model
     ),
 
     final as (
         select
             date,
+            ad_type,
             company_make,
-            -- device_make,
+            raw_make,
             master_model,
-            -- device_model,
+            raw_model,
             cleaned_device_os,
             device_type,
             release_month,
@@ -102,14 +105,15 @@ with
             ) as creative_view,
             sum(clicks) as clicks,
             sum(case when complete = 0 then impression else complete end) as complete
-        from merged_with_device_data
-        where device_make <> ''
+        from merged_with_device_master
+        -- where device_make <> ''
         group by
             date,
+            ad_type,
             company_make,
-            -- -- 	device_make,
+            raw_make,
             master_model,
-            -- device_model,
+            raw_model,
             cleaned_device_os,
             device_type,
             release_month,
@@ -118,8 +122,8 @@ with
     )
 
 select *
-from
-    final
+from final
+
 
     -- metadata_deviceosmetadata
     -- device_os, cleaned_device_os
@@ -131,4 +135,3 @@ from
     -- company_id, device_id, model,
     -- device_type, release_month, release_year
     
-*/

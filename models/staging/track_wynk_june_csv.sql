@@ -1,0 +1,1 @@
+select * from publify_raw.track_wynk_june_csv

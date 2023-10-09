@@ -4,9 +4,13 @@ with
         select
             date(start_datetime) as date,
             ad_type,
+            line_item_id,
+            app_id,
+
             lower(make) as make,
             lower(model) as model,
             lower(device_os) as device_os,
+
             sum(impression) as impression,
             sum(creative_view) as creative_view,
             sum(click) as clicks,
@@ -18,8 +22,10 @@ with
             -- and 
             country in ('IND', 'IN', 'in')
         group by
-            date(start_datetime),
+            date,
             ad_type,
+            line_item_id,
+            app_id,
             lower(make),
             lower(model),
             lower(device_os)
