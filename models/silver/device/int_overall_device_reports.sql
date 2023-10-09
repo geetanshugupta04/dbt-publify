@@ -1,19 +1,27 @@
 with
 
-    bids as (select * from {{ ref("stg_bid_device") }} where make = 'lava'),
+    bids as (select * from {{ ref("stg_bid_device") }} 
+    -- where make = 'lava'
+    )
+    ,
 
-    vast as (select * from {{ ref("stg_vast_device") }} where make = 'lava'),
+    vast as (select * from {{ ref("stg_vast_device") }} 
+    -- where make = 'lava'
+    )
+    ,
 
-    track as (select * from {{ ref("stg_track_device") }} where make = 'lava'),
+    track as (select * from {{ ref("stg_track_device") }} 
+    -- where make = 'lava'
+    )
+    ,
 
-    device_os as (select * from {{ ref("stg_device_os_metadata") }}),
+    
 
-    device_company as (select * from {{ ref("stg_device_company_metadata") }}),
+    device_master as (select * from {{ ref("int_device_master") }}),
 
-    device_raw as (select * from {{ ref("stg_device_make_model_metadata") }}),
+ 
 
-    device_master as (select * from {{ ref("stg_device_master") }}),
-
+    
     merged as (
         select
             b.date,
@@ -44,6 +52,9 @@ with
             and lower(b.model) = lower(t.model)
             and lower(b.device_os) = lower(t.device_os)
     ),
+
+
+    
 
     merged_with_device_os as (
         select m.*, device_os.cleaned_device_os
@@ -93,25 +104,9 @@ with
         from merged_with_device_raw as m
         left join master_device as master on m.device_id = master.device_id
 
-    )
+    ),
 
-select
-    make,
-    model,
-    cleaned_device_os,
-    raw_make,
-    raw_model,
-    company_make,
-    master_model,
-
-    sum(bid_requests) as bids_bids
-from merged_with_device_master
-group by 1,
-2, 3, 4, 5, 6, 7
-order by
-    1
-
-    /*
+    
     final as (
         select
             date,
@@ -162,5 +157,3 @@ from
     -- company_id, device_id, model,
     -- device_type, release_month, release_year
 
-    */
-    
