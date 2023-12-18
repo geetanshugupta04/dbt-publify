@@ -26,5 +26,6 @@ with
             lower(device_os)
     )
 
-select *
+select date, sum(bid_requests), sum(bid_response)
 from bids
+group by 1

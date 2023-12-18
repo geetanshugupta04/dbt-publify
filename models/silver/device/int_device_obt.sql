@@ -124,6 +124,13 @@ with
 select *
 from final
 
+-- select date, sum(bid_requests) as bid_requests,
+--             sum(bid_response) as bid_response,
+--             sum(bid_wins) as bid_wins,
+--             sum(impressions) as impressions
+--             from final
+--             group by 1
+
 
     -- metadata_deviceosmetadata
     -- device_os, cleaned_device_os
