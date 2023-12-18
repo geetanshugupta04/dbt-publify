@@ -44,4 +44,4 @@ models:
 
     silver:
       +schema: silver
-      +materialized: view
+      +materialized: table

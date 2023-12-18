@@ -3,7 +3,7 @@ with
     camp_detail as (
         select *
         from {{ ref("stg_campaigns") }}
-        where campaign_id = 'ebpCArhq7MgQK25u6fzdg8'
+        where campaign_id = '5QZPtgRnJ2aBn4PW7YSYyH'
     ),
 
     line_detail as (
@@ -62,6 +62,7 @@ with
         group by line_item_id, pincode, app_id, date
     ),
 
+
     track_pincode_lineitems as (
         select l.campaign_id, l.c_line_item_type, t.*
 
@@ -69,6 +70,13 @@ with
         left join line_detail as l on t.line_item_id = l.line_item_id
 
     ),
+
+    -- select c_line_item_type,
+    -- sum(impression) as impression,
+    --         sum(click) as click
+    --         from track_pincode_lineitems
+    --         group by 1
+
 
     sum_by_pin as (
         select
@@ -159,12 +167,13 @@ with
         from sum_pincode_merged
     ),
 
+    -- select c_line_item_type, sum(impression), sum(click)
+    -- from track1_pincode_adjusted
+    -- group by 1
+
     /* offline pincode adjustments ends*/
-    /* Take out Publisher data*/
-    -- pub_detail as (
-    -- select id as app_id, name as "Publisher Group", ssp as ssp
-    -- from metadata_publisher
-    -- ),
+    
+    
     merged as (
         select
             t1.campaign_id,
@@ -346,7 +355,17 @@ with
             camp_detail.show_avg_cpm
         from track4 r
         left join camp_detail on r.campaign_id = camp_detail.campaign_id
-    ),
+    )
+
+    select campaign_id, 
+sum(impression),
+           
+            sum(click)
+from merged1
+group by 1
+
+
+    /*
     merged2 as (
         select
             m.line_item_id,
@@ -498,5 +517,11 @@ with
 
     )
 
-select *
+select campaign_name, 
+sum(impression),
+           
+            sum(clicks)
 from final
+group by 1
+*/
+
