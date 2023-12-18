@@ -2,9 +2,9 @@
 -- sources
 with
 
-    bids as (select * from {{ ref("stg_bid_geo") }}),
+    -- bids as (select * from {{ ref("stg_bid_geo") }}),
 
-    vast as (select * from {{ ref("stg_vast_geo") }}),
+    -- vast as (select * from {{ ref("stg_vast_geo") }}),
 
     track as (select * from {{ ref("stg_track_geo") }}),
 
