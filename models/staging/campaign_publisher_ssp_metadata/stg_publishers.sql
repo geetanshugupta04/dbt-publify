@@ -4,8 +4,9 @@ with
         select 
             id as app_id, 
             name as publisher_group, 
+            publisher_id,
             ssp 
-            from publify_raw.metadata_publisher_csv
+            from paytunes_data.metadata_publisher
     )
 
 select *

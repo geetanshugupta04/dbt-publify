@@ -2,7 +2,7 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'publify_reporting'
+name: 'paytunes_reporting'
 version: '1.0.0'
 config-version: 2
 
@@ -32,11 +32,11 @@ clean-targets:         # directories to be removed by `dbt clean`
 # as tables. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 models:
-  publify_reporting:
+  paytunes_reporting:
     # Applies to all files under models/example/
     staging:
       +schema: staging
-      +materialized: view
+      +materialized: table
     
     bronze:
       +schema: bronze
