@@ -16,9 +16,12 @@ with
             ssp,
             ad_type,
             platform_type,
+            -- device_make,
+            -- device_model,
             device_os,
             pincode,
-            app_name,
+            -- app_name,
+            date,
             hour,
             sum(impression) as impression,
             sum(complete) as complete,
@@ -34,9 +37,12 @@ with
             ssp,
             ad_type,
             platform_type,
+            -- device_make,
+            -- device_model,
             device_os,
             pincode,
-            app_name,
+            -- app_name,
+            date,
             hour,
             case
                 when impression < creative_view
@@ -60,23 +66,69 @@ with
         left join pincodes on track.pincode = pincodes.pincode
     ),
 
+    merged_with_pincodes_deviceos as (
+
+        select merged_with_pincodes.*, device_os_metadata.cleaned_device_os
+
+        from merged_with_pincodes
+        left join
+            device_os_metadata
+            on merged_with_pincodes.device_os = device_os_metadata.device_os
+
+    ),
+
     final as (
 
         select
             ssp,
             ad_type,
             platform_type,
-            device_os,
-            app_name,
+            -- device_make,
+            -- device_model,
+            -- cleaned_device_os,
+            case
+                when cleaned_device_os is null and lower(device_os) = 'ios'
+                then 'iOS'
+                when cleaned_device_os is null and lower(device_os) = 'android'
+                then 'Android'
+                -- when
+                --     cleaned_device_os is null
+                --     and lower(device_os) in ('linux', 'linux - ubuntu')
+                -- then 'Linux'
+                -- when cleaned_device_os is null and lower(device_os) = 'ipados'
+                -- then 'iPadOS'
+                -- when
+                --     cleaned_device_os is null
+                --     and lower(device_os) in ('macos', 'mac os', 'os x')
+                -- then 'macOS'
+                -- when cleaned_device_os is null and lower(device_os) = 'chrome os'
+                -- then 'Chrome OS'
+                -- when
+                --     cleaned_device_os is null
+                --     and lower(device_os) in ('windows 10', 'windows 7', 'windows')
+                -- then 'Windows'
+                -- when
+                --     cleaned_device_os is null
+                --     and lower(device_os) = 'samsung proprietary'
+                -- then 'Samsung'
+                -- when cleaned_device_os is null and lower(device_os) = 'tvos'
+                -- then 'Apple TV OS'
+                -- when cleaned_device_os is null and device_os in ('Other', 'Not Found')
+                -- then 'NA'
+                else 'Other'
+            end as cleaned_device_os,
+
+            -- app_name,
             city,
             state,
+            date,
             hour,
             sum(impression) as impression,
             sum(complete) as complete,
             sum(creative_view) as creative_view,
             sum(click) as click
 
-        from merged_with_pincodes
+        from merged_with_pincodes_deviceos
         where city is not null
         group by 1, 2, 3, 4, 5, 6, 7, 8
 
@@ -85,3 +137,4 @@ with
 select *
 from final
 where ssp is not null and ssp != 'offline'
+
