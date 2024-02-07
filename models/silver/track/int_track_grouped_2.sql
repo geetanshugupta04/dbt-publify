@@ -1,36 +1,31 @@
 with
 
-    track as (select * from {{ ref("stg_track_oct") }}),
+    track as (select * from {{ ref("stg_track_oct_2") }}),
 
     track_cleaned as (
         select
-            ssp,
+
             ad_type,
             platform_type,
+            ssp,
 
-            -- device_make,
-            -- device_model,
-            device_os,
+            device_make,
+            device_model,
+            device_type,
 
             pincode,
+            dealcode,
 
-            -- floor_price,
-            -- bid_price,
-            -- id,
-            -- appid,
-            p_bundle as bundle,
-            -- bundle_name,
-            -- app_publisher_id,
+            app_id,
+            category,
             domain,
             app_name,
             p_bundle,
-            app_id,
 
-            -- category,
-            -- content_category,
-            -- date,
-            date_trunc('day', created_on) as date,
-            date_trunc('hour', created_on) as hour,
+            date,
+            floor_currency,
+            avg_floor_price,
+            avg_bid_price,
 
             case when type = 'impression' then 1 else 0 end as impression,
             case when type = 'complete' then 1 else 0 end as complete,
@@ -58,51 +53,35 @@ with
 
         select
 
-            ssp,
             ad_type,
             platform_type,
+            ssp,
 
-            -- device_make,
-            -- device_model,
-            device_os,
+            device_make,
+            device_model,
+            device_type,
 
             pincode,
+            dealcode,
 
-            -- floor_price,
-            -- bid_price,
-            -- id,
-            -- appid,
-            bundle,
-            -- bundle_name,
-            -- app_publisher_id,
+            app_id,
+            category,
             domain,
             app_name,
             p_bundle,
-            app_id,
 
-            -- category,
-            -- content_category,
             date,
-            hour,
-            -- datetime,
+            floor_currency,
+            avg_floor_price,
+            avg_bid_price,
+
             sum(impression) as impression,
             sum(complete) as complete,
             sum(creative_view) as creative_view,
             sum(click) as click
 
         from track_cleaned
-        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-    -- 13,
-    -- 14,
-    -- 15,
-    -- 16,
-    -- 17,
-    -- 18,
-    -- 19,
-    -- 20,
-    -- 21,
-    -- 22,
-    -- 23
+        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
     )
 
 select *
