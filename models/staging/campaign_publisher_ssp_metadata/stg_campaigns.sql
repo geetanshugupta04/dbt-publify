@@ -7,7 +7,7 @@ with
             max(end_date) as campaign_end_date,
             show_avg_cpm
 
-        from publify_raw.campaign_campaign_csv
+        from paytunes_data.campaign_campaign
         group by id, campaign_name, show_avg_cpm
     )
 
