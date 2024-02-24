@@ -12,7 +12,7 @@ with
             sum(click) as click,
             sum(complete) as complete
 
-        from default.track_geo_campaigns_csv
+        from paytunes_data.track_geo_campaigns_csv
         group by 
             line_item_id,
             date,
