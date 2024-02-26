@@ -2,7 +2,7 @@ with
 
     track as (
         select *
-        from {{ ref("int_track_modelling_categories") }}
+        from {{ ref("int_track_modelling") }}
 
         where
             age != '13-17'
@@ -12,25 +12,6 @@ with
 
     ),
 
-    -- device_master as (select * from {{ ref("int_device_master") }}),
-    -- merged_with_device_master as (
-    -- select
-    -- m.*,
-    -- master.device_id,
-    -- master.raw_make,
-    -- master.raw_model,
-    -- master.company_make,
-    -- master.master_model,
-    -- master.device_type,
-    -- master.release_month,
-    -- master.release_year,
-    -- master.cost
-    -- from track as m
-    -- left join
-    -- device_master as master
-    -- on m.device_make = master.raw_make
-    -- and m.device_model = master.raw_model
-    -- )
     top_cities as (
 
         select city, sum(impression) as imp from track group by city having imp > 10000
@@ -112,7 +93,50 @@ with
             sum(click) as click
         from cleaned
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+    ),
+
+    final_1 as (
+
+        select
+            -- domain,
+            -- p_bundle,
+            -- app_name,
+            urban_or_rural,
+            city,
+            device_os,
+            age_cleaned,
+            gender_cleaned,
+            -- date, -- 10 tuesday 14-15 weekend
+            -- round(avg_floor_price, 2),
+            round(avg(cast(avg_floor_price as float)), 4) as fp,
+            round(avg(cast(avg_bid_price as float)), 4) as bp,
+            round((sum(complete) / sum(impression)) * 100, 2) as ltr,
+            round((sum(click) / sum(impression)) * 100, 2) as ctr,
+            sum(complete) as completes,
+            sum(click) as clicks,
+            sum(impression) as impressions
+        from final
+        where
+            domain in (
+                'wynk.in'  -- 'odeeo.io',
+            -- 'audiomob.com',
+            -- 'pocketfm.com',
+            -- 'Spotify.com'
+            )
+            and age_cleaned not in ('35-44', '45+')
+            and device_os in (
+                'android', 'iphone'
+            -- 'NA',
+            -- 'na',
+            -- 'something',
+            -- 'anything'
+            )
+            and avg_floor_price between 1 and 1.3
+        group by 1, 2, 3, 4, 5
+        having impressions > 1000
+        order by city, ltr desc, impressions desc
+
     )
 
 select *
-from final
+from final_1

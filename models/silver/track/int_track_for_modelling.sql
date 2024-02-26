@@ -1,49 +1,41 @@
 with
 
-    track as (select * from {{ ref("int_track_grouped") }}),
+    track as (
+        select *
+        from {{ ref("int_track_grouped") }}
+        where ssp is not null and ssp != 'offline'
+    ),
 
     pincodes as (
         select * from {{ ref("stg_pincode_metadata") }} where is_verified = 'true'
     ),
 
-    device_os_metadata as (select * from {{ ref("stg_device_os_metadata") }}),
+    dealcodes as (select * from {{ ref("stg_dealcodes") }}),
 
-    ssp_apps as (select * from {{ ref("int_ssp_apps") }}),
-
-    track_abridged as (
-
+    track_cleaned as (
         select
-            ssp,
             ad_type,
             platform_type,
-            -- device_make,
-            -- device_model,
-            device_os,
-            pincode,
-            -- app_name,
-            date,
-            hour,
-            sum(impression) as impression,
-            sum(complete) as complete,
-            sum(creative_view) as creative_view,
-            sum(click) as click
-
-        from track
-        group by 1, 2, 3, 4, 5, 6, 7
-    ),
-
-    track_abridged_cleaned as (
-        select
             ssp,
-            ad_type,
-            platform_type,
-            -- device_make,
-            -- device_model,
-            device_os,
+
+            device_make,
+            device_model,
+            device_type,
+
             pincode,
-            -- app_name,
+            dealcode,
+
+            app_id,
+            split_part(category, ',', 1) as category,
+            domain,
+            app_name,
+            p_bundle,
+
             date,
-            hour,
+            floor_currency,
+            avg_floor_price,
+            avg_bid_price,
+
             case
                 when impression < creative_view
                 then creative_view
@@ -55,86 +47,162 @@ with
             creative_view,
             click
 
-        from track_abridged
+        from track
 
     ),
 
     merged_with_pincodes as (
-        select track.*, pincodes.city, pincodes.state
-
-        from track_abridged_cleaned as track
+        select
+            track.*,
+            pincodes.city,
+            -- pincodes.state,
+            pincodes.urban_or_rural
+        -- pincodes.grand_city
+        from track_cleaned as track
         left join pincodes on track.pincode = pincodes.pincode
     ),
 
-    merged_with_pincodes_deviceos as (
+    -- select category, old_iab_category, iab_unique_id, category_name, count(*) from
+    -- merged_with_pincodes_ad_categories
+    -- group by 1,2,3, 4
+    -- order by count(1) desc
+    merged_with_pincodes_dealcodes as (
+        select m.*, d.age, d.gender
 
-        select merged_with_pincodes.*, device_os_metadata.cleaned_device_os
-
-        from merged_with_pincodes
-        left join
-            device_os_metadata
-            on merged_with_pincodes.device_os = device_os_metadata.device_os
+        from merged_with_pincodes as m
+        left join dealcodes as d on m.dealcode = d.deal_id
 
     ),
 
+    -- select dealcode, age, gender, count(*) from
+    -- merged_with_pincodes_ad_categories_dealcodes
+    -- group by 1,2,3
+    -- order by count(1) desc
     final as (
 
         select
-            ssp,
             ad_type,
             platform_type,
-            -- device_make,
-            -- device_model,
-            -- cleaned_device_os,
-            case
-                when cleaned_device_os is null and lower(device_os) = 'ios'
-                then 'iOS'
-                when cleaned_device_os is null and lower(device_os) = 'android'
-                then 'Android'
-                -- when
-                --     cleaned_device_os is null
-                --     and lower(device_os) in ('linux', 'linux - ubuntu')
-                -- then 'Linux'
-                -- when cleaned_device_os is null and lower(device_os) = 'ipados'
-                -- then 'iPadOS'
-                -- when
-                --     cleaned_device_os is null
-                --     and lower(device_os) in ('macos', 'mac os', 'os x')
-                -- then 'macOS'
-                -- when cleaned_device_os is null and lower(device_os) = 'chrome os'
-                -- then 'Chrome OS'
-                -- when
-                --     cleaned_device_os is null
-                --     and lower(device_os) in ('windows 10', 'windows 7', 'windows')
-                -- then 'Windows'
-                -- when
-                --     cleaned_device_os is null
-                --     and lower(device_os) = 'samsung proprietary'
-                -- then 'Samsung'
-                -- when cleaned_device_os is null and lower(device_os) = 'tvos'
-                -- then 'Apple TV OS'
-                -- when cleaned_device_os is null and device_os in ('Other', 'Not Found')
-                -- then 'NA'
-                else 'Other'
-            end as cleaned_device_os,
+            ssp,
 
-            -- app_name,
+            device_make,
+            device_model,
+            device_type,
+
             city,
-            state,
+            -- state,
+            urban_or_rural,
+            -- grand_city,
+            dealcode,
+            age,
+            gender,
+
+            category,
+
+            app_id,
+            domain,
+            app_name,
+            p_bundle,
+
             date,
-            hour,
+            floor_currency,
+            avg_floor_price,
+            avg_bid_price,
+
             sum(impression) as impression,
             sum(complete) as complete,
-            sum(creative_view) as creative_view,
+            -- sum(creative_view) as creative_view,
             sum(click) as click
 
-        from merged_with_pincodes_deviceos
+        from merged_with_pincodes_dealcodes
         where city is not null
-        group by 1, 2, 3, 4, 5, 6, 7, 8
+        group by
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+    ),
+
+    ad_categories as (select * from {{ ref("stg_ad_categories") }}),
+
+    track_with_categories as (
+        select
+
+            -- c.old_iab_category,
+            -- c.iab_unique_id,
+            -- case
+            -- when m.category = 'IAB1'
+            -- then 'Arts & Entertainment'
+            -- when m.category = 'IAB24'
+            -- then 'Uncategorized'
+            -- when m.category = 'IAB12'
+            -- then 'News'
+            -- when m.category = 'IAB14'
+            -- then 'Society'
+            -- else c.category_name
+            -- end as category_name
+            t.*, coalesce(c.category_name, d.category_name) as category_name
+
+        from final as t
+        left join ad_categories as c on t.category = c.old_iab_category
+        left join ad_categories as d on t.category = d.iab_unique_id
+
+    ),
+
+    final_2 as (
+        select
+
+            ad_type,
+            platform_type,
+            ssp,
+
+            lower(device_make) as device_make,
+            lower(device_model) as device_model,
+            device_type,
+
+            city,
+            urban_or_rural,
+            dealcode,
+            age,
+            gender,
+
+            category_name,
+            app_id,
+            domain,
+            app_name,
+            p_bundle,
+
+            date,
+            floor_currency,
+            avg_floor_price,
+            avg_bid_price,
+
+            sum(impression) as impression,
+            sum(complete) as complete,
+            sum(click) as click
+
+        from track_with_categories
+        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
     )
 
 select *
 from final
-where ssp is not null and ssp != 'offline'
-
