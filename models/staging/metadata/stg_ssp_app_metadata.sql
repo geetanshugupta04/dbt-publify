@@ -1,0 +1,16 @@
+with
+    ssp_app_metadata as (
+        select
+
+            ssp_app_id,
+            name as ssp_app_name,
+            ssp,
+            bundle,
+            publisher_id,
+            app_id as publify_app_id
+
+        from paytunes_data.metadata_sspappmetadata
+
+    )
+select *
+from ssp_app_metadata

@@ -1,3 +1,4 @@
+/*
 with
 
     camp_detail as (
@@ -285,6 +286,8 @@ select campaign_id, sum(impression), sum(click)
 from merged1
 group by
     1
+
+    */
 
     /*
     merged2 as (

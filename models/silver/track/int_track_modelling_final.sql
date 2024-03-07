@@ -2,7 +2,7 @@ with
 
     track as (
         select *
-        from {{ ref("int_track_modelling") }}
+        from {{ ref("int_track_for_modelling") }}
 
         where
             age != '13-17'

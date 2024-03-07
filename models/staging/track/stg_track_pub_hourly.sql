@@ -1,1 +1,1 @@
-select * from paytunes_data.track_pub_hourly_feb_2023
+select line_item_id from paytunes_data.track_pub_hourly_feb_2023
