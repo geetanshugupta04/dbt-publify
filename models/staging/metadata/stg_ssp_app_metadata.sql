@@ -1,7 +1,8 @@
 with
+
     ssp_app_metadata as (
         select
-
+            
             ssp_app_id,
             name as ssp_app_name,
             ssp,
@@ -9,7 +10,7 @@ with
             publisher_id,
             app_id as publify_app_id
 
-        from paytunes_data.metadata_sspappmetadata
+        from paytunes_data.metadata_sspapp
 
     )
 select *

@@ -11,9 +11,9 @@ with
             metadata.ssp_app_name as ssp_app_name,
             metadata.ssp_app_id as ssp_app_id,
             metadata.bundle as bundle,
+            metadata.publisher_id as publisher_id,
             master.publify_app_id,
-            master.publify_app_name,
-            master.publify_app_master_id
+            master.publify_app_name
 
         from ssp_app_metadata as metadata
         left join ssp_app_master as master using (publify_app_id)
