@@ -1,6 +1,12 @@
 with
 
-    bid_floors as (select * from {{ ref("int_publisher_ssp_division") }}),
+    bid_floors as (
+        select * from {{ ref("int_publisher_ssp_division") }} where avg_floor_price < 10
+    ),
+
+    {% do log("fdgfsdv *******************************************", info=true) %}
+{% do log(node, info=true) %}
+    {% do log("fdgfsdv *******************************************", info=true) %}
 
     bid_floors_grouped as (
 
@@ -27,7 +33,7 @@ with
             bids,
             {{
                 calculate_weighted_mean(
-                    "ad_type, ssp, publify_ssp_publisher_name", fp, bids
+                    "ad_type, ssp, publify_ssp_publisher_name", "fp", "bids"
                 )
             }} as weighted_mean
 
@@ -64,4 +70,4 @@ with
 -- from weighted_stats
 -- order by 1, 2, 3, 4
 select *
-from weighted_mean
+from weighted_stats
