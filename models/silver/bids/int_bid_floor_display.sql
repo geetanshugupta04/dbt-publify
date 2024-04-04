@@ -1,6 +1,6 @@
 with
 
-    display_bids as (select * from {{ ref("stg_bid_floor_display") }} limit 10000),
+    display_bids as (select * from {{ ref("stg_bid_floor_display") }} where fp < 10),
 
     ssp_apps as (select * from {{ ref("int_ssp_apps") }}),
 
@@ -17,33 +17,44 @@ with
         select
             ssp,
             ad_type,
+            dealcode,
+            device_os,
+            pincode,
             publisher_id,
             publify_ssp_publisher_name,
             publify_app_name,
+            banner_height,
+            banner_width,
+            banner_position,
+            banner_topframe,
+            banner_fmt,
             fp,
             sum(bids) as bids
 
         from merged_with_ssp_apps_publishers
-        group by 1, 2, 3, 4, 5, 6
+        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
 
     ),
 
-    weighted_mean as (
+    weighted_means as (
 
         select
-            ssp,
-            ad_type,
-            publisher_id,
-            publify_ssp_publisher_name,
-            publify_app_name,
-            fp,
-            bids,
+            cleaned_bids.*,
             {{
                 calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name", fp, bids
+                    "ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name",
+                    "fp",
+                    "bids",
                 )
-            }} as weighted_mean
-
+            }}
+            as weighted_mean_pub_app,
+            {{
+                calculate_weighted_mean(
+                    "ad_type, ssp, publisher_id, banner_height, banner_width",
+                    "fp",
+                    "bids",
+                )
+            }} as weighted_mean_pub_banner_dim
         from cleaned_bids
 
     ),
@@ -51,33 +62,50 @@ with
     weighted_variance as (
 
         select
-            weighted.*,
+            means.*,
 
-            sum(bids * power(fp - weighted_mean, 2)) over (
-                partition by ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name
-                range between unbounded preceding and unbounded following
-            ) / sum(bids) over (
-                partition by ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name
-                range between unbounded preceding and unbounded following
-            ) as weighted_variance
+            {{
+                calculate_weighted_variance(
+                    "ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name",
+                    "weighted_mean_pub_app",
+                    "fp",
+                    "bids",
+                )
+            }}
+            as weighted_var_pub_app,
+            {{
+                calculate_weighted_variance(
+                    "ad_type, ssp, publisher_id, banner_height, banner_width",
+                    "weighted_mean_pub_banner_dim",
+                    "fp",
+                    "bids",
+                )
+            }} as weighted_var_pub_banner_dim
 
-        from weighted_mean as weighted
+        from weighted_means as means
 
     ),
 
-weighted_stats as (
+    weighted_stats as (
 
-        select weighted.*, round(sqrt(weighted_variance), 6) as weighted_std
+        select
+            weighted.*,
+            round(sqrt(weighted_var_pub_app), 6) as weighted_std_pub_app,
+            round(sqrt(weighted_var_pub_banner_dim), 6) as weighted_std_pub_banner_dim
 
         from weighted_variance as weighted
 
     )
 
-
 select *
-from
-    weighted_stats
-    order by 1,2,3,4,5,6
+from cleaned_bids
+order by
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
 
     /*
 
