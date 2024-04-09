@@ -1,7 +1,9 @@
 with
 
     device_os as (
-        select cleaned_device_os, device_os from paytunes_data.metadata_deviceosmetadata
+
+        select cleaned_device_os, device_os
+        from hive_metastore.paytunes_data.metadata_deviceosmetadata
 
     )
 

@@ -7,7 +7,7 @@ with
             name as category_name,
             old_iab_taxonomy as old_iab_category
 
-        from paytunes_data.metadata_ad_category
+        from hive_metastore.paytunes_data.metadata_ad_category
 
     )
 

@@ -11,7 +11,7 @@ with
             release_year,
             cost
 
-        from paytunes_data.metadata_devicemaster
+        from hive_metastore.paytunes_data.metadata_devicemaster
     )
 
 select *
