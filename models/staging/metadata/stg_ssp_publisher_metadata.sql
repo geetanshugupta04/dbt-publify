@@ -9,7 +9,7 @@ with
             ssppublisher_ssp as ssp,
             ssppublisher_publisher_master_id as publify_ssp_publisher_id
 
-        from paytunes_data.metadata_ssppublisher
+        from hive_metastore.paytunes_data.metadata_ssppublisher
 
     )
 

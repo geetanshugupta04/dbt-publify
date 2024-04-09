@@ -23,7 +23,7 @@ with
             `_id.date` as date,
             bid_count
 
-        from paytunes_data.adswizz_us_march4
+        from hive_metastore.paytunes_data.adswizz_us_march4
 
     )
 

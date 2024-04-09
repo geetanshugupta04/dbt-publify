@@ -2,8 +2,9 @@ with
 
     pincode_metadata as (
 
-        select pincode, urban_or_rural, city, grand_city, state, is_verified
-        from paytunes_data.metadata_pincodemetadata
+        select pincode, urban_or_rural, city, grand_city, state
+        from hive_metastore.paytunes_data.metadata_pincodemetadata
+        where is_verified = 'true'
 
     )
 

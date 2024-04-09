@@ -8,7 +8,7 @@ with
             publishermaster_name as publify_ssp_publisher_name,
             publishermaster_ssp_publisher_id as publify_ssp_publisher_master_id
 
-        from paytunes_data.metadata_publishermaster
+        from hive_metastore.paytunes_data.metadata_publishermaster
 
     )
 

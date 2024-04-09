@@ -10,7 +10,7 @@ with
             publisher_id,
             app_id as publify_app_id
 
-        from paytunes_data.metadata_sspapp
+        from hive_metastore.paytunes_data.metadata_sspapp
 
     )
 select *
