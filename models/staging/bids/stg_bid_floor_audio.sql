@@ -54,8 +54,8 @@ with
             case when feed = 3 then 'podcast' else ad_type end as ad_type,
             lower(device_os) as device_os,
 
-            model,
-            make,
+            lower(model) as model,
+            lower(make) as make,
 
             pincode,
             app_id as ssp_app_id,
@@ -70,30 +70,32 @@ with
             deal_2,
             deal_3,
 
-            -- maxseq,
-            -- maxextended,
-            -- minduration,
-            -- maxduration,
-            -- series,
-            -- stitched,
-            -- companionad0h,
-            -- companionad1h,
-            -- companionad2h,
-            -- companionad3h,
-            -- companionad0w,
-            -- companionad1w,
-            -- companionad2w,
-            -- companionad3w,
-            -- startdelay,
+            maxseq,
+            maxextended,
+            minduration,
+            maxduration,
+            series,
+            stitched,
+            companionad0h,
+            companionad1h,
+            companionad2h,
+            companionad3h,
+            companionad0w,
+            companionad1w,
+            companionad2w,
+            companionad3w,
+            startdelay,
+
             coalesce(genre_site, genre_app) as genre,
             floor_price,
-            -- date,
-            sum(bid_count) as bids
+            date,
+
+            bid_count as bids
 
         from audio_bids
-        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
 
     )
 
 select *
 from audio_bids_cleaned
+where deal_0 not in (1,2)

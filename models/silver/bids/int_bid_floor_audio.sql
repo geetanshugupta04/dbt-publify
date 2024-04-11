@@ -10,9 +10,22 @@ with
 
     ),
 
+    device_data as (select * from {{ ref("int_device_master") }}),
+
+    merged_with_device_data as (
+
+        {{ merge_device_data("merged_with_device_os", "device_data") }}
+    ),
+
+    dealcodes as (select * from {{ ref("stg_dealcodes") }}),
+
+    merged_with_dealcodes as (
+        {{ merge_dealcodes("merged_with_device_data", "dealcodes") }}
+    ),
+
     pincodes as (select * from {{ ref("stg_pincode_metadata") }}),
 
-    merged_with_pincodes as ({{ merge_pincodes("merged_with_device_os", "pincodes") }}),
+    merged_with_pincodes as ({{ merge_pincodes("merged_with_dealcodes", "pincodes") }}),
 
     ssp_apps as (select * from {{ ref("int_ssp_apps") }}),
 
@@ -25,96 +38,40 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps", "ssp_publishers") }}
     ),
 
-    cleaned_bids as (
-        select
-            ssp,
-            ad_type,
-            dealcode,
-            device_os,
-            pincode,
-            publisher_id,
-            publify_ssp_publisher_name,
-            publify_app_name,
-            banner_height,
-            banner_width,
-            banner_position,
-            banner_topframe,
-            banner_fmt,
-            fp,
-            sum(bids) as bids
+    cleaned_pubs_triton as ({{ clean_triton_pubs("merged_with_ssp_apps_publishers") }}),
 
-        from merged_with_ssp_apps_publishers
-        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+    cleaned_pubs_adswizz as (
+        {{ clean_adswizz_pubs("merged_with_ssp_apps_publishers") }}
 
     ),
 
-    weighted_means as (
+    cleaned_pubs_union as (
 
-        select
-            cleaned_bids.*,
-            {{
-                calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name",
-                    "fp",
-                    "bids",
-                )
-            }}
-            as weighted_mean_pub_app,
-            {{
-                calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, banner_height, banner_width",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_mean_pub_banner_dim
-        from cleaned_bids
-
+        select ssp, ssp_app_name, publisher_cleaned
+        from cleaned_pubs_triton
+        union all
+        select ssp, ssp_app_name, publisher_cleaned
+        from cleaned_pubs_adswizz
     ),
 
-    weighted_variance as (
+    joined as (
 
         select
-            means.*,
+            bids.*,
+            pubs.publisher_cleaned,
+            case
+                when bids.publify_ssp_publisher_name is null
+                then pubs.publisher_cleaned
+                else lower(bids.publify_ssp_publisher_name)
+            end as publisher_final
 
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, publisher_id, publify_ssp_publisher_name, publify_app_name",
-                    "weighted_mean_pub_app",
-                    "fp",
-                    "bids",
-                )
-            }}
-            as weighted_var_pub_app,
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, publisher_id, banner_height, banner_width",
-                    "weighted_mean_pub_banner_dim",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_var_pub_banner_dim
-
-        from weighted_means as means
-
-    ),
-
-    weighted_stats as (
-
-        select
-            weighted.*,
-            round(sqrt(weighted_var_pub_app), 6) as weighted_std_pub_app,
-            round(sqrt(weighted_var_pub_banner_dim), 6) as weighted_std_pub_banner_dim
-
-        from weighted_variance as weighted
+        from merged_with_ssp_apps_publishers as bids
+        left join
+            cleaned_pubs_union as pubs
+            on bids.ssp = pubs.ssp
+            and bids.ssp_app_name = pubs.ssp_app_name
 
     )
 
 select *
-from cleaned_bids
-order by
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
+from joined
