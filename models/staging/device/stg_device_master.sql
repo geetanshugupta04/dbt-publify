@@ -5,7 +5,7 @@ with
 
             id as device_id,
             company_id,
-            model_name as master_model,
+            lower(trim(model_name)) as master_model,
             device_type,
             release_month,
             release_year,
