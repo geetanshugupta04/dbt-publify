@@ -11,7 +11,8 @@
             when device_data.master_model is null
             then bids.model
             else device_data.master_model
-        end as final_model
+        end as final_model,
+        device_data.cost
     from {{ bids }} as bids
     left join
         {{ device_data }} as device_data

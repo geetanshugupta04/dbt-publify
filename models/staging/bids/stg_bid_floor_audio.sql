@@ -63,7 +63,7 @@ with
             bundle,
             domain,
             publisher_id,
-            category,
+            split(category, ',')[0] as category,
 
             deal_0,
             deal_1,
@@ -98,4 +98,4 @@ with
 
 select *
 from audio_bids_cleaned
-where deal_0 not in (1,2)
+where deal_0 not in (1, 2)

@@ -1,6 +1,6 @@
 with
 
-    bids as (select * from {{ ref("stg_bids_for_gaming_analysis") }}),
+    bids as (select * from {{ ref("stg_bid_floor_video") }}),
 
     device_os_metadata as (select * from {{ ref("stg_device_os_metadata") }}),
 
@@ -17,24 +17,18 @@ with
         {{ merge_device_data("merged_with_device_os", "device_data") }}
     ),
 
-    dealcodes as (select * from {{ ref("stg_dealcodes") }}),
-
-    merged_with_dealcodes as (
-        {{ merge_dealcodes("merged_with_device_data", "dealcodes") }}
-    ),
-
-    {#
     pincodes as (select * from {{ ref("stg_pincode_metadata") }}),
 
-    merged_with_pincodes as ({{ merge_pincodes("merged_with_dealcodes", "pincodes") }}),
+    merged_with_pincodes as (
+        {{ merge_pincodes("merged_with_device_data", "pincodes") }}
+    ),
 
-    #}
     ssp_apps_tags as (select * from {{ ref("int_ssp_apps_tags") }}),
 
     ssp_publishers as (select * from {{ ref("int_ssp_publishers") }}),
 
     merged_with_ssp_apps_tags as (
-        {{ merge_ssp_apps("merged_with_dealcodes", "ssp_apps_tags") }}
+        {{ merge_ssp_apps("merged_with_pincodes", "ssp_apps_tags") }}
     ),
 
     merged_with_ssp_publishers as (
@@ -57,48 +51,68 @@ with
             ssp,
             ad_type,
 
-            ip,
-            ifa,
-            uid,
-
+            device_os,
             cleaned_device_os,
+
+            model,
+            make,
             final_make,
             final_model,
-            cost as device_cost,
 
-            deal_0,
-            age,
-            gender,
+            pincode,
+            urban_or_rural,
+            city,
+            grand_city,
+            state,
 
-            -- pincode,
-            -- urban_or_rural,
-            -- city,
-            -- grand_city,
-            -- state,
             ssp_app_id,
             ssp_app_name,
             bundle,
+            domain,
             publisher_id,
 
-            case
-                when publify_app_name is null then ssp_app_name else publify_app_name
-            end as publify_app_name,
+            publify_app_name,
             case
                 when publify_ssp_publisher_name is null
                 then lower(ssp_publisher_name)
                 else lower(publify_ssp_publisher_name)
             end as publisher_final,
 
-            case
-                when app_category is null then 'NA' else app_category
-            end as app_category_tag,
-            case
-                when category_name is null then 'NA' else category_name
-            end as iab_category,
+            app_category,
+            category,
+            category_name,
 
-            fp,
+            h,
+            w,
+            placement,
+            skipafter,
+            skip,
+            startdelay,
+            minduration,
+            maxduration,
+            linearity,
+            skipmin,
+
+            companion_banner_h0,
+            companion_banner_h1,
+            companion_banner_h2,
+            companion_banner_h3,
+            companion_banner_w0,
+            companion_banner_w1,
+            companion_banner_w2,
+            companion_banner_w3,
+            companion_banner_h4,
+            companion_banner_h5,
+            companion_banner_h6,
+            companion_banner_h7,
+            companion_banner_w4,
+            companion_banner_w5,
+            companion_banner_w6,
+            companion_banner_w7,
+
+            case when floor_price is null then 0 else floor_price end as fp,
             date,
-            bids
+            bid_count as bids
 
         from merged_with_iab_categories as bids
     )

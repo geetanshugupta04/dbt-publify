@@ -50,9 +50,9 @@
 
         case
             {% for pub in triton_pubs %}
-                when ssp_publisher_name ilike '%{{pub}}%' then '{{pub}}'
+                when ssp_app_name ilike '%{{pub}}%' then '{{pub}}'
             {% endfor %}
-            else lower(ssp_publisher_name)
+            else lower(ssp_app_name)
         end as publisher_cleaned
 
     from {{ bids }}
