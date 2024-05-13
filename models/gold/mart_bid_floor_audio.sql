@@ -7,7 +7,11 @@ with
         select
 
             ssp,
-            ad_type,
+            case
+                when deal_0 = 'PODCAST-3c68-4bde-89fd-2761ba68a499'
+                then 'podcast'
+                else ad_type
+            end as ad_type,
 
             cleaned_device_os,
 
@@ -26,7 +30,9 @@ with
             bundle,
             publisher_id,
 
-            publify_app_name,
+            case
+                when publify_app_name is null then publisher_final else publify_app_name
+            end as publify_app_final,
 
             case
                 when publisher_final ilike 'grupo%'
@@ -45,66 +51,41 @@ with
             publisher_final,
 
             case
-                when app_category is null then 'NA' else app_category
+                when app_category_tag is null then 'NA' else app_category_tag
             end as app_category_tag,
-            category_name,
+            iab_category_name,
             genre,
             minduration,
-            round(cast(maxduration as int) / 10) as maxduration,
+            cast(maxduration as int) as maxduration,
+            case when fp = 0 then 1 else 0 end as null_fps,
 
             round(cast(fp as float), 6) as fp,
             sum(bids) as bids
 
         from audio_bids
         where publisher_final not in ('tim media', 'light fm')
-        group by
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22
-    -- having fp < 5
-    ),
-
-    big_pubs as (
-
-        select ad_type, publisher_final, sum(bids) as bids
-        from cleaned_bids
-        group by 1, 2
-        having bids > 100
+        group by all
 
     ),
 
-    big_fps as (
+    big_pubs_apps as (
+        select
+            bids.*,
+            sum(bids) over (
+                partition by ad_type, publisher_id, null_fps
+            ) as pub_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (
+                partition by ad_type, publify_app_final, null_fps
+            ) as pub_app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (partition by ad_type, publisher_id) as pub_bids_sum,
+            sum(bids) over (
+                partition by ad_type, publify_app_final
+            ) as pub_app_bids_sum,
+            sum(bids) over (partition by ad_type) as total_bids_sum
 
-        select fp, sum(bids) as bids from cleaned_bids group by 1 having bids > 10
+        from cleaned_bids as bids
+        qualify (pub_app_bids_sum > 100) and null_fps = 0
 
-    ),
-
-    big_pub_big_fp_bids as (
-
-        select *
-        from cleaned_bids
-        where
-            publisher_final in (select publisher_final from big_pubs)
-            and fp in (select fp from big_fps)
     ),
 
     weighted_means as (
@@ -113,14 +94,14 @@ with
             bids.*,
             {{
                 calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, publisher_final, publify_app_name",
+                    "ad_type, ssp, publisher_id, publify_app_final",
                     "fp",
                     "bids",
                 )
             }} as weighted_mean_pub_app,
             {{
                 calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, publisher_final, deal_0",
+                    "ad_type, ssp, publisher_id, deal_0",
                     "fp",
                     "bids",
                 )
@@ -139,62 +120,57 @@ with
                     "bids",
                 )
             }} as weighted_mean_age_gender
-        from big_pub_big_fp_bids as bids
-
-    ),
-
-    weighted_variance as (
-
-        select
-            means.*,
-
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, publisher_id, publisher_final, publify_app_name",
-                    "weighted_mean_pub_app",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_var_pub_app,
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, publisher_id, publisher_final, deal_0",
-                    "weighted_mean_pub_deal",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_var_pub_deal,
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, app_category_tag",
-                    "weighted_mean_app_category",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_var_app_category,
-            {{
-                calculate_weighted_variance(
-                    "ad_type, ssp, age, gender",
-                    "weighted_mean_age_gender",
-                    "fp",
-                    "bids",
-                )
-            }} as weighted_var_age_gender
-
-        from weighted_means as means
+        from big_pubs_apps as bids
 
     ),
 
     weighted_stats as (
 
         select
-            weighted.*,
-            round(sqrt(weighted_var_pub_app), 6) as weighted_std_pub_app,
-            round(sqrt(weighted_var_pub_deal), 6) as weighted_std_pub_deal,
-            round(sqrt(weighted_var_app_category), 6) as weighted_std_app_category,
-            round(sqrt(weighted_var_age_gender), 6) as weighted_std_age_gender
+            means.*,
 
-        from weighted_variance as weighted
+            sqrt(
+                {{
+                    calculate_weighted_variance(
+                        "ad_type, ssp, publisher_id, publify_app_final",
+                        "weighted_mean_pub_app",
+                        "fp",
+                        "bids",
+                    )
+                }}
+            ) as weighted_std_pub_app,
+            sqrt(
+                {{
+                    calculate_weighted_variance(
+                        "ad_type, ssp, publisher_id, deal_0",
+                        "weighted_mean_pub_deal",
+                        "fp",
+                        "bids",
+                    )
+                }}
+            ) as weighted_std_pub_deal,
+            sqrt(
+                {{
+                    calculate_weighted_variance(
+                        "ad_type, ssp, app_category_tag",
+                        "weighted_mean_app_category",
+                        "fp",
+                        "bids",
+                    )
+                }}
+            ) as weighted_std_app_category,
+            sqrt(
+                {{
+                    calculate_weighted_variance(
+                        "ad_type, ssp, age, gender",
+                        "weighted_mean_age_gender",
+                        "fp",
+                        "bids",
+                    )
+                }}
+            ) as weighted_std_age_gender
+
+        from weighted_means as means
 
     )
 

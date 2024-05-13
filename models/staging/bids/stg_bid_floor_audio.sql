@@ -72,8 +72,8 @@ with
 
             maxseq,
             maxextended,
-            minduration,
-            maxduration,
+            cast(minduration as int) as minduration,
+            cast(maxduration as int) as maxduration,
             series,
             stitched,
             companionad0h,
@@ -84,10 +84,10 @@ with
             companionad1w,
             companionad2w,
             companionad3w,
-            startdelay,
+            cast(startdelay as int) as startdelay,
 
-            coalesce(genre_site, genre_app) as genre,
-            floor_price,
+            coalesce(genre_site, genre_app, 'NA') as genre,
+            cast(floor_price as float) as fp,
             date,
 
             bid_count as bids

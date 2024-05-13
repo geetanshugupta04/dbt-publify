@@ -1,27 +1,8 @@
-{% set numerical_columns_with_nulls = [
-    "h",
-    "w",
-    "fp",
-    "skip",
-    "skipafter",
-    "startdelay",
-    "skipmin",
-    "linearity",
-    "minduration",
-    "maxduration",
-] %}
-{% set categorical_columns_with_nulls = [
-    "final_make",
-    "final_model",
-    "cleaned_device_os",
-    "app_category",
-    "category_name",
-    "placement",
-] %}
-
 with
 
-    bids as (select * from {{ ref("stg_bid_floor_video") }}),
+    bids as (
+        select * from {{ ref("stg_bid_floor_podcast") }} where ad_type = 'podcast'
+    ),
 
     device_os_metadata as (select * from {{ ref("stg_device_os_metadata") }}),
 
@@ -38,11 +19,15 @@ with
         {{ merge_device_data("merged_with_device_os", "device_data") }}
     ),
 
+    dealcodes as (select * from {{ ref("stg_dealcodes") }}),
+
+    merged_with_dealcodes as (
+        {{ merge_dealcodes("merged_with_device_data", "dealcodes") }}
+    ),
+
     pincodes as (select * from {{ ref("stg_pincode_metadata") }}),
 
-    merged_with_pincodes as (
-        {{ merge_pincodes("merged_with_device_data", "pincodes") }}
-    ),
+    merged_with_pincodes as ({{ merge_pincodes("merged_with_dealcodes", "pincodes") }}),
 
     ssp_apps_tags as (select * from {{ ref("int_ssp_apps_tags") }}),
 
@@ -68,13 +53,20 @@ with
     final as (
 
         select
-
             ssp,
             ad_type,
 
             device_os,
+            cleaned_device_os,
+
             model,
             make,
+            final_make,
+            final_model,
+
+            case when deal_0 is null then 'NA' else deal_0 end as deal_0,
+            age,
+            gender,
 
             pincode,
             urban_or_rural,
@@ -95,39 +87,26 @@ with
                 else lower(publify_ssp_publisher_name)
             end as publisher_final,
 
-            {% for column in categorical_columns_with_nulls %}
-                case
-                    when {{ column }} is null then 'NA' else {{ column }}
-                end as {{ column }},
-            {% endfor %}
+            app_category as app_category_tag,
+            category,
+            category_name as iab_category_name,
 
-            {% for column in numerical_columns_with_nulls %}
-                case
-                    when {{ column }} is null then 99999 else {{ column }}
-                end as {{ column }},
-            {% endfor %}
+            minduration,
+            maxduration,
+            startdelay,
+            maxextended,
+            maxseq,
+            stitched,
 
-            companion_banner_h0,
-            companion_banner_h1,
-            companion_banner_h2,
-            companion_banner_h3,
-            companion_banner_w0,
-            companion_banner_w1,
-            companion_banner_w2,
-            companion_banner_w3,
-            companion_banner_h4,
-            companion_banner_h5,
-            companion_banner_h6,
-            companion_banner_h7,
-            companion_banner_w4,
-            companion_banner_w5,
-            companion_banner_w6,
-            companion_banner_w7,
+            case when series is null then 'NA' else series end as series,
+            case when genre is null then 'NA' else genre end as genre,
 
+            case when fp is null then 99999 else fp end as fp,
             date,
             bid_count as bids
 
         from merged_with_iab_categories as bids
+
     )
 
 select *

@@ -85,16 +85,18 @@ with
                 else lower(publify_ssp_publisher_name)
             end as publisher_final,
 
-            app_category,
+            app_category as app_category_tag,
             category,
-            category_name,
+            category_name as iab_category_name,
 
             minduration,
             maxduration,
-            series,
+            startdelay,
+            maxextended,
+            case when series is null then 'NA' else series end as series,
             genre,
 
-            case when floor_price is null then 0 else floor_price end as fp,
+            case when fp is null then 99999 else fp end as fp,
             date,
             bids
 
