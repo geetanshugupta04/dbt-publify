@@ -14,8 +14,11 @@ with
             `_id.bundle` as bundle,
             `_id.domain` as domain,
             `_id.publisher_id` as publisher_id,
-
-            split(`_id.category`, ',')[0] as category,
+            case
+                when coalesce(`_id.series_site`, `_id.series_app`) = 'DHADKANE MERI SUN'
+                then 373
+                else split(`_id.category`, ',')[0]
+            end as category,
 
             cast(`_id.maxseq[0]` as int) as maxseq,
             `_id.maxextended[0]` as maxextended,

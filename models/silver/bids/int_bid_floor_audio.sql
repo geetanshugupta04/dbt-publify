@@ -40,7 +40,7 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps_tags", "ssp_publishers") }}
     ),
 
-    iab_categories as (select * from {{ ref("stg_ad_categories") }}),
+    iab_categories as (select * from {{ ref("stg_metadata_content_categories") }}),
 
     merged_with_iab_categories as (
 
@@ -93,6 +93,9 @@ with
             maxduration,
             startdelay,
             maxextended,
+            maxseq,
+            stitched,
+
             case when series is null then 'NA' else series end as series,
             genre,
 
@@ -104,50 +107,4 @@ with
     )
 
 select *
-from
-    final
-
-    {#
-
-
-
-
-
-    cleaned_pubs_triton as ({{ clean_triton_pubs("merged_with_ssp_apps_publishers") }}),
-
-    cleaned_pubs_adswizz as (
-        {{ clean_adswizz_pubs("merged_with_ssp_apps_publishers") }}
-
-    ),
-
-    cleaned_pubs_union as (
-
-        select ssp, ssp_app_name, publisher_cleaned
-        from cleaned_pubs_triton
-        union all
-        select ssp, ssp_app_name, publisher_cleaned
-        from cleaned_pubs_adswizz
-    ),
-
-    joined as (
-
-        select
-            bids.*,
-            pubs.publisher_cleaned,
-            case
-                when bids.publify_ssp_publisher_name is null
-                then pubs.publisher_cleaned
-                else lower(bids.publify_ssp_publisher_name)
-            end as publisher_final
-
-        from merged_with_ssp_apps_publishers as bids
-        left join
-            cleaned_pubs_union as pubs
-            on bids.ssp = pubs.ssp
-            and bids.ssp_app_name = pubs.ssp_app_name
-
-    )
-
-
-#}
-    
+from final

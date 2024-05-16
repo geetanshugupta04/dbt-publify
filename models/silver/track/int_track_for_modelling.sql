@@ -141,7 +141,7 @@ with
             20
     ),
 
-    ad_categories as (select * from {{ ref("stg_ad_categories") }}),
+    ad_categories as (select * from {{ ref("stg_metadata_content_categories") }}),
 
     track_with_categories as (
         select

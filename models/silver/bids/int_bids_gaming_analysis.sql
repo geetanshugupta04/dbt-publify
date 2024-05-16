@@ -42,7 +42,7 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps_tags", "ssp_publishers") }}
     ),
 
-    iab_categories as (select * from {{ ref("stg_ad_categories") }}),
+    iab_categories as (select * from {{ ref("stg_metadata_content_categories") }}),
 
     merged_with_iab_categories as (
 
