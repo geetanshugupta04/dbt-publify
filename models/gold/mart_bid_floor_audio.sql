@@ -54,7 +54,9 @@ with
                 when app_category_tag is null then 'NA' else app_category_tag
             end as app_category_tag,
             iab_category_name,
-            genre,
+
+            case when genre is null then 'NA' else genre end as genre,
+            case when series is null then 'NA' else series end as series,
             minduration,
             cast(maxduration as int) as maxduration,
             case when fp = 0 then 1 else 0 end as null_fps,
@@ -84,6 +86,7 @@ with
             sum(bids) over (partition by ad_type) as total_bids_sum
 
         from cleaned_bids as bids
+        where ad_type = 'audio'
         qualify (pub_app_bids_sum > 100) and null_fps = 0
 
     ),

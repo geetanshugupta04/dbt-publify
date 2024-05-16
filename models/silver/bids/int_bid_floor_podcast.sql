@@ -42,7 +42,7 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps_tags", "ssp_publishers") }}
     ),
 
-    iab_categories as (select * from {{ ref("stg_ad_categories") }}),
+    iab_categories as (select * from {{ ref("int_iab_content_categories") }}),
 
     merged_with_iab_categories as (
 
@@ -90,6 +90,11 @@ with
             app_category as app_category_tag,
             category,
             category_name as iab_category_name,
+            tier_1_category,
+            tier_2_category,
+            tier_3_category,
+            tier_4_category,
+            itunes_category,
 
             minduration,
             maxduration,
