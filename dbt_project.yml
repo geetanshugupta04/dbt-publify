@@ -49,3 +49,17 @@ models:
     gold:
       +schema: gold
       +materialized: table
+
+    green:
+      staging:
+
+        +schema: green_staging
+        +materialized: table
+
+      silver:
+
+        +schema: green_silver
+        +materialized: table
+    
+
+
