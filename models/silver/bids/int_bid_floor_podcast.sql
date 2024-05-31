@@ -1,8 +1,6 @@
 with
 
-    bids as (
-        select * from {{ ref("stg_bid_floor_podcast") }} where ad_type = 'podcast'
-    ),
+    bids as (select * from {{ ref("stg_bid_floor_podcast") }}),
 
     device_os_metadata as (select * from {{ ref("stg_device_os_metadata") }}),
 
@@ -58,6 +56,9 @@ with
 
             device_os,
             cleaned_device_os,
+
+            ip,
+            ifa,
 
             model,
             make,

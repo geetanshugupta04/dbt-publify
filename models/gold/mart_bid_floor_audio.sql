@@ -13,7 +13,13 @@ with
                 else ad_type
             end as ad_type,
 
+            year,
+            month,
+            day,
+            hour,
+
             cleaned_device_os,
+            device_type,
 
             final_make,
             final_model,
@@ -21,7 +27,12 @@ with
             deal_0,
             age,
             gender,
+            ip,
+            ipv6,
+            ifa,
 
+            lon,
+            lat,
             pincode,
             city,
 
@@ -31,21 +42,21 @@ with
             publisher_id,
 
             case
-                when publify_app_name is null then publisher_final else publify_app_name
-            end as publify_app_final,
+                when publify_app is null then publify_publisher else publify_app
+            end as app_final,
 
             case
-                when publisher_final ilike 'grupo%'
+                when publify_publisher ilike 'grupo%'
                 then 'grupo'
-                when publisher_final ilike '%nzme%'
+                when publify_publisher ilike '%nzme%'
                 then 'nzme'
                 -- when
                 -- publisher_final ilike '%audiohuis%'
                 -- or ssp_publisher_name ilike '%audiohuis%'
                 -- then 'audiohuis'
-                when publisher_final ilike '%observador%'
+                when publify_publisher ilike '%observador%'
                 then 'observador'
-                else publisher_final
+                else publify_publisher
             end as
 
             publisher_final,
@@ -54,9 +65,10 @@ with
                 when app_category_tag is null then 'NA' else app_category_tag
             end as app_category_tag,
             iab_category_name,
+            itunes_category,
 
             case when genre is null then 'NA' else genre end as genre,
-            case when series is null then 'NA' else series end as series,
+            -- case when series is null then 'NA' else series end as series,
             minduration,
             cast(maxduration as int) as maxduration,
             case when fp = 0 then 1 else 0 end as null_fps,
@@ -65,7 +77,7 @@ with
             sum(bids) as bids
 
         from audio_bids
-        where publisher_final not in ('tim media', 'light fm')
+        where publify_publisher not in ('tim media', 'light fm')
         group by all
 
     ),
@@ -77,12 +89,10 @@ with
                 partition by ad_type, publisher_id, null_fps
             ) as pub_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
             sum(bids) over (
-                partition by ad_type, publify_app_final, null_fps
+                partition by ad_type, app_final, null_fps
             ) as pub_app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
             sum(bids) over (partition by ad_type, publisher_id) as pub_bids_sum,
-            sum(bids) over (
-                partition by ad_type, publify_app_final
-            ) as pub_app_bids_sum,
+            sum(bids) over (partition by ad_type, app_final) as pub_app_bids_sum,
             sum(bids) over (partition by ad_type) as total_bids_sum
 
         from cleaned_bids as bids
@@ -97,7 +107,7 @@ with
             bids.*,
             {{
                 calculate_weighted_mean(
-                    "ad_type, ssp, publisher_id, publify_app_final",
+                    "ad_type, ssp, publisher_id, app_final",
                     "fp",
                     "bids",
                 )
@@ -135,7 +145,7 @@ with
             sqrt(
                 {{
                     calculate_weighted_variance(
-                        "ad_type, ssp, publisher_id, publify_app_final",
+                        "ad_type, ssp, publisher_id, app_final",
                         "weighted_mean_pub_app",
                         "fp",
                         "bids",

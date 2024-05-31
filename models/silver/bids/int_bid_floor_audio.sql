@@ -40,7 +40,7 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps_tags", "ssp_publishers") }}
     ),
 
-    iab_categories as (select * from {{ ref("stg_metadata_content_categories") }}),
+    iab_categories as (select * from {{ ref("int_iab_content_categories") }}),
 
     merged_with_iab_categories as (
 
@@ -51,21 +51,33 @@ with
     final as (
 
         select
+
             ssp,
             ad_type,
+            deal_0,
+
+            year,
+            month,
+            day,
+            hour,
 
             device_os,
             cleaned_device_os,
+            device_type,
 
             model,
             make,
             final_make,
             final_model,
 
-            case when deal_0 is null then 'NA' else deal_0 end as deal_0,
+            ip,
+            ipv6,
+            ifa,
             age,
             gender,
 
+            lon,
+            lat,
             pincode,
             urban_or_rural,
             city,
@@ -78,29 +90,27 @@ with
             domain,
             publisher_id,
 
-            publify_app_name,
+            publify_app_name as publify_app,
             case
                 when publify_ssp_publisher_name is null
                 then lower(ssp_publisher_name)
                 else lower(publify_ssp_publisher_name)
-            end as publisher_final,
+            end as publify_publisher,
 
             app_category as app_category_tag,
             category,
             category_name as iab_category_name,
-
+            itunes_category,
+            genre,
+            -- case when series is null then 'NA' else series end as series,
             minduration,
             maxduration,
             startdelay,
-            maxextended,
+            -- maxextended,
             maxseq,
             stitched,
 
-            case when series is null then 'NA' else series end as series,
-            genre,
-
-            case when fp is null then 99999 else fp end as fp,
-            date,
+            fp,
             bids
 
         from merged_with_iab_categories as bids

@@ -9,7 +9,11 @@ with
             ssp,
             ad_type,
 
+            ip,
+            ifa,
+
             cleaned_device_os,
+            device_type,
 
             final_make,
             final_model,

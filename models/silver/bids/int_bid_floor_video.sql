@@ -57,7 +57,7 @@ with
         {{ merge_ssp_publishers("merged_with_ssp_apps_tags", "ssp_publishers") }}
     ),
 
-    iab_categories as (select * from {{ ref("stg_metadata_content_categories") }}),
+    iab_categories as (select * from {{ ref("int_iab_content_categories") }}),
 
     merged_with_iab_categories as (
 
@@ -72,7 +72,11 @@ with
             ssp,
             ad_type,
 
+            ifa,
+            ip,
+
             device_os,
+            device_type,
             model,
             make,
 
@@ -115,14 +119,6 @@ with
             companion_banner_w1,
             companion_banner_w2,
             companion_banner_w3,
-            companion_banner_h4,
-            companion_banner_h5,
-            companion_banner_h6,
-            companion_banner_h7,
-            companion_banner_w4,
-            companion_banner_w5,
-            companion_banner_w6,
-            companion_banner_w7,
 
             date,
             bid_count as bids
