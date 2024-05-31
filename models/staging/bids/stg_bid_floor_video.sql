@@ -5,7 +5,12 @@ with
         select
             `_id.ssp` as ssp,
             `_id.ad_type` as ad_type,
+
+            `_id.ip` as ip,
+            `_id.ifa` as ifa,
+
             lower(`_id.device_os`) as device_os,
+            `_id.device_type` as device_type,
             lower(`_id.make`) as make,
             lower(`_id.model`) as model,
             `_id.pincode` as pincode,
@@ -17,7 +22,6 @@ with
             split(`_id.category`, ',')[0] as category,
             `_id.date` as date,
             cast(`_id.floor_price` as float) as fp,
-            `_id.tagid[0]` as tag_id,
             cast(`_id.h[0]` as int) as h,
             cast(`_id.w[0]` as int) as w,
             `_id.placement[0]` as placement,
@@ -39,18 +43,9 @@ with
             `_id.companion_banner_w[0][2]` as companion_banner_w2,
             `_id.companion_banner_w[0][3]` as companion_banner_w3,
 
-            `_id.companion_banner_h[0][4]` as companion_banner_h4,
-            `_id.companion_banner_h[0][5]` as companion_banner_h5,
-
-            `_id.companion_banner_h[0][6]` as companion_banner_h6,
-            `_id.companion_banner_h[0][7]` as companion_banner_h7,
-            `_id.companion_banner_w[0][4]` as companion_banner_w4,
-            `_id.companion_banner_w[0][5]` as companion_banner_w5,
-            `_id.companion_banner_w[0][6]` as companion_banner_w6,
-            `_id.companion_banner_w[0][7]` as companion_banner_w7,
             bid_count
 
-        from hive_metastore.paytunes_data.bid_floor_video
+        from {{ source("paytunes_data", "bid_floor_video") }}
     )
 
 select *

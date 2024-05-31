@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: mart_bid_floor_podcast
+    description: Final prepared data for preset
+    columns:
+      - name: minduration
+        description: podcast minimum duration
+        tests:
+          - not_null
+
+  # - name: mart_bid_floor_audio
+  #   columns:
+  #     - name: customer_id
+  #       tests:
+  #         - unique
+  #         - not_null
+
+  # - name: mart_bid_floor_display
+  #   columns:
+  #     - name: order_id
+  #       tests:
+  #         - unique
+  #         - not_null
+  #     - name: status
+  #       tests:
+  #         - accepted_values:
+  #             values:
+  #               ["placed", "shipped", "completed", "return_pending", "returned"]
+  #     - name: customer_id
+  #       tests:
+  #         - not_null
+  #         - relationships:
+  #             to: ref('stg_customers')
+  #             field: customer_id

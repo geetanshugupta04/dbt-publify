@@ -75,6 +75,9 @@ with
 
             cleaned_device_os,
 
+            ip,
+            ifa,
+
             final_make,
             final_model,
 
@@ -192,7 +195,8 @@ with
                 when d.category_name = 'Healthy Living'
                 then 'Health & Fitness'
                 else d.itunes_category
-            end as itunes_category
+            end as itunes_category,
+            d.itunes_subcategory
 
         from cleaned_bids as bids
         left join iab_categories as d on bids.category = d.unique_id
@@ -204,6 +208,8 @@ with
             sum(bids) over (partition by ssp) as ssp_bids_sum,
             sum(bids) over (partition by ssp, null_fps) as ssp_bids_sum_fp_not_null,
             sum(bids) over (partition by itunes_category) as itunes_bids_sum,
+            sum(bids) over (partition by city) as city_bids_sum,
+            sum(bids) over (partition by city, itunes_category) as city_itunes_bids_sum,
             sum(bids) over (partition by ssp, itunes_category) as ssp_itunes_bids_sum,
             sum(bids) over (
                 partition by itunes_category, null_fps

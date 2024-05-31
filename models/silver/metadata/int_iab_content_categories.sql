@@ -11,7 +11,7 @@ with
     final as (
 
         select
-            metadata.old_iab_category, iab_taxonomy.*, itunes_categories.itunes_category
+            metadata.old_iab_category, iab_taxonomy.*, itunes_categories.itunes_category, itunes_categories.itunes_subcategory
 
         from metadata_content_categories as metadata
         left join iab_taxonomy on metadata.iab_unique_id = iab_taxonomy.unique_id

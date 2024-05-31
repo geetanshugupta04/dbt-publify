@@ -1,6 +1,27 @@
+{% set numerical_columns_with_nulls = [
+    "h",
+    "w",
+    "fp",
+    "skip",
+    "skipafter",
+    "startdelay",
+    "skipmin",
+    "linearity",
+    "minduration",
+    "maxduration",
+] %}
+{% set categorical_columns_with_nulls = [
+    "final_make",
+    "final_model",
+    "cleaned_device_os",
+    "app_category",
+    "category_name",
+    "placement",
+] %}
+
 with
 
-    bids as (select * from {{ ref("stg_bid_floor_display") }}),
+    bids as (select * from {{ ref("stg_bid_floor_ctv") }}),
 
     device_os_metadata as (select * from {{ ref("stg_device_os_metadata") }}),
 
@@ -56,25 +77,25 @@ with
             day,
             hour,
 
-            device_os,
-            cleaned_device_os,
-            device_type,
-
-            make,
-            model,
-            final_make,
-            final_model,
-
             ip,
             ipv6,
             ifa,
 
-            lon,
-            lat,
+            device_os,
+            cleaned_device_os,
+            device_type,
+
+            model,
+            make,
+            final_make,
+            final_model,
+
             pincode,
             urban_or_rural,
             city,
             state,
+            lon,
+            lat,
 
             ssp_app_id,
             ssp_app_name,
@@ -82,29 +103,53 @@ with
             domain,
             publisher_id,
 
-            case
-                when publify_app_name is null then ssp_app_name else publify_app_name
-            end as publify_app,
+            publify_app_name as publify_app,
             case
                 when publify_ssp_publisher_name is null
                 then lower(ssp_publisher_name)
                 else lower(publify_ssp_publisher_name)
             end as publify_publisher,
+            {#
+            -- {% for column in categorical_columns_with_nulls %}
+            --     case
+            --         when {{ column }} is null then 'NA' else {{ column }}
+            --     end as {{ column }},
+            -- {% endfor %}
 
-            app_category as app_category_tag,
-            category_name as iab_category_name,
-            itunes_category,
-
-            pos,
+            -- {% for column in numerical_columns_with_nulls %}
+            --     case
+            --         when {{ column }} is null then 99999 else {{ column }}
+            --     end as {{ column }},
+            -- {% endfor %}
+            #}
             h,
             w,
-            topframe,
-            -- -- instl,
-            fp,
-            bids
+            skip,
+            skipafter,
+            skipmin,
+            startdelay,
 
-        from merged_with_iab_categories
+            linearity,
+            minduration,
+            maxduration,
+            maxextended,
+            instl,
+            placement,
 
+            category,
+            app_category as app_category_tag,
+            category_name as iab_category_name,
+            contentrating,
+            livestream,
+            genre,
+            network,
+            channel,
+            prodq,
+
+            floor_price as fp,
+            bid_count as bids
+
+        from merged_with_iab_categories as bids
     )
 
 select *

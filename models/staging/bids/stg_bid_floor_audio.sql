@@ -4,31 +4,54 @@ with
 
         select
 
+            -- top level
             `_id.ssp` as ssp,
-            `_id.ad_type` as ad_type,
-            `_id.feed` as feed,
-            `_id.device_os` as device_os,
-            `_id.pincode` as pincode,
-            `_id.app_id` as app_id,
-            `_id.app_name` as app_name,
+            case when `_id.feed` = 3 then 'podcast' else `_id.ad_type` end as ad_type,
+            `_id.dealcode[0][0]` as deal_0,
+            -- `_id.dealcode[0][1]` as deal_1,
+            -- `_id.dealcode[0][2]` as deal_2,
+            -- `_id.dealcode[0][3]` as deal_3,
+
+            -- temporal
+            `_id.year` as year,  -- int
+            `_id.month` as month,  -- int
+            `_id.day` as day,  -- int
+            `_id.hour` as hour,  -- int
+
+            -- device
+            lower(`_id.device_os`) as device_os,
+            `_id.device_type` as device_type,  -- int
+            -- lower(`_id.make`) as make,
+            'NA' as make,
+            lower(`_id.model`) as model,
+
+            -- user and location
+            `_id.ip` as ip,
+            `_id.ipv6` as ipv6,
+            lower(`_id.ifa`) as ifa,
+            `_id.pincode` as pincode,  -- int
+            `_id.device_lon` as lon,  -- double
+            `_id.device_lat` as lat,  -- double
+
+            -- app and publisher
+            `_id.app_id` as ssp_app_id,
+            `_id.app_name` as ssp_app_name,
             `_id.bundle` as bundle,
             `_id.domain` as domain,
             `_id.publisher_id` as publisher_id,
-            `_id.floor_price` as floor_price,
-            `_id.category` as category,
-            `_id.date` as date,
-            `_id.maxseq[0]` as maxseq,
-            `_id.maxextended[0]` as maxextended,
+            split(`_id.category`, ',')[0] as category,
+            coalesce(`_id.genre_site`, `_id.genre_app`) as genre,
+            -- `_id.series` as series,
+
+            -- audio settings
             `_id.minduration[0]` as minduration,
             `_id.maxduration[0]` as maxduration,
-            `_id.series` as series,
-            `_id.dealcode[0][0]` as deal_0,
-            `_id.dealcode[0][1]` as deal_1,
-            `_id.dealcode[0][2]` as deal_2,
-            `_id.dealcode[0][3]` as deal_3,
-            `_id.model` as model,
-            `_id.make` as make,
+            `_id.maxseq[0]` as maxseq,
+            -- `_id.maxextended[0]` as maxextended,
             `_id.stitched[0]` as stitched,
+            `_id.startdelay[0]` as startdelay,
+
+            -- companion banner
             `_id.companionad[0][0].h` as companionad0h,
             `_id.companionad[0][1].h` as companionad1h,
             `_id.companionad[0][2].h` as companionad2h,
@@ -37,65 +60,15 @@ with
             `_id.companionad[0][1].w` as companionad1w,
             `_id.companionad[0][2].w` as companionad2w,
             `_id.companionad[0][3].w` as companionad3w,
-            `_id.startdelay[0]` as startdelay,
-            `_id.genre_site` as genre_site,
-            `_id.genre_app` as genre_app,
 
-            bid_count
+            -- metrics
+            `_id.floor_price` as fp,  -- double
+            bid_count as bids  -- int
 
-        from hive_metastore.paytunes_data.bid_floor_audio
-
-    ),
-
-    audio_bids_cleaned as (
-
-        select
-            ssp,
-            case when feed = 3 then 'podcast' else ad_type end as ad_type,
-            lower(device_os) as device_os,
-
-            lower(model) as model,
-            lower(make) as make,
-
-            pincode,
-            app_id as ssp_app_id,
-            app_name as ssp_app_name,
-            bundle,
-            domain,
-            publisher_id,
-            split(category, ',')[0] as category,
-
-            deal_0,
-            deal_1,
-            deal_2,
-            deal_3,
-
-            maxseq,
-            maxextended,
-            cast(minduration as int) as minduration,
-            cast(maxduration as int) as maxduration,
-            series,
-            stitched,
-            companionad0h,
-            companionad1h,
-            companionad2h,
-            companionad3h,
-            companionad0w,
-            companionad1w,
-            companionad2w,
-            companionad3w,
-            cast(startdelay as int) as startdelay,
-
-            coalesce(genre_site, genre_app, 'NA') as genre,
-            cast(floor_price as float) as fp,
-            date,
-
-            bid_count as bids
-
-        from audio_bids
+        from {{ source("paytunes_data", "bid_floor_audio") }}
+        -- where deal_0 not in (1, 2)
 
     )
 
 select *
-from audio_bids_cleaned
-where deal_0 not in (1, 2)
+from audio_bids
