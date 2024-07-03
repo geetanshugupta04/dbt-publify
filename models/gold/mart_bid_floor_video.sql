@@ -40,7 +40,23 @@ with
             w,
             ln(h * w) as lnhw,
 
-            placement,
+            case
+                when placement = 1
+                then 'In-Stream'
+                when placement = 2
+                then 'In-Banner'
+                when placement = 3
+                then 'In-Article'
+                when placement = 4
+                then 'In-Feed'
+                when placement = 5
+                then 'Interstitial'
+                else null
+            end as placement_type,
+
+            case
+                when placement in (1, 5) then 'Non-Mute' else 'Mute'
+            end as mute_not_mute,
             /*
             1. in stream - played before, during or after the streaming video content (pre, mid, post roll)
             2. in banner - exists within a web banner, leverages the banner space to deliver a video experience
@@ -60,7 +76,15 @@ with
             end as skipmin,
             case when skip = 0 then 0 else skipafter end as skipafter,
 
-            case when startdelay > 0 then 0 else startdelay end as startdelay,
+            case
+                when startdelay >= 0
+                then 'Pre-Roll'
+                when startdelay = -1
+                then 'Mid-Roll'
+                when startdelay = -2
+                then 'Post-Roll'
+                else startdelay
+            end as startdelay,
             -- 0 = pre roll, -1 = generic mid roll, -2 = generic post roll, >0 = start
             -- delay in seconds (mid roll)
             -- be careful when including more data, currently max(startdealy) was just 2
@@ -84,7 +108,6 @@ with
             and maxduration not in (99999, 2147483647)
             and cleaned_device_os
             in ('iOS', 'Linux', 'macOS', 'Chrome OS', 'Android', 'Windows')
-            and placement in ('1', '5')
             and fp < 100000
             and publify_app_name is not null
 
@@ -110,7 +133,7 @@ with
             sum(bids) over () as total_bids_sum
 
         from cleaned_bids as bids
-        qualify pub_app_bids_sum > 100000 and null_fps = 0
+        qualify pub_app_bids_sum > 10000 and null_fps = 0
 
     ),
 

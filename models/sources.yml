@@ -16,6 +16,9 @@ sources:
       - name: bid_floor_audio
         description: >
           One record per order. Includes cancelled and deleted orders.
+      - name: bid_floor_price_audio
+        description: >
+          One record per order. Includes cancelled and deleted orders.
         # columns:
         #   - name: id
         #     description: Primary key of the orders table

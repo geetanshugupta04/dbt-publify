@@ -38,7 +38,11 @@ with
             publify_app as app_final,
             publify_publisher as publisher_final,
 
-            app_category_tag,
+            case
+                when publify_app = 'Wynk Music: MP3, Song, Podcast'
+                then 'Entertainemnt'
+                else app_category_tag
+            end as app_category_tag,
             iab_category_name,
             itunes_category,
 
@@ -90,17 +94,15 @@ pos
             sum(bids) over (
                 partition by ssp_app_name, null_fps
             ) as ssp_app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
-            sum(bids) over (
-                partition by app_final, null_fps
-            ) as pub_app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (partition by app_final, null_fps) as app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
             sum(bids) over (partition by publisher_id) as pub_bids_sum,
             sum(bids) over (partition by ssp_app_name) as ssp_app_bids_sum,
-            sum(bids) over (partition by app_final) as pub_app_bids_sum,
+            sum(bids) over (partition by app_final) as app_bids_sum,
             sum(bids) over () as total_bids_sum
 
         from cleaned_bids as bids
         where app_final not in ('ne')
-        qualify (pub_app_bids_sum > 100000) and null_fps = 0 and app_final is not null
+        qualify (app_bids_sum > 10000) and null_fps = 0 and app_final is not null
 
     )
 

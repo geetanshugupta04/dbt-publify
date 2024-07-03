@@ -61,3 +61,14 @@ models:
         +schema: green_silver
         +materialized: table
     
+    paytunes_crm:
+      staging:
+
+        +schema: staging
+        +materialized: table
+
+      silver:
+
+        +schema: silver
+        +materialized: table
+    

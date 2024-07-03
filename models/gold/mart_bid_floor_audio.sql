@@ -16,8 +16,7 @@ with
             year,
             month,
             day,
-            hour,
-
+            -- hour,
             cleaned_device_os,
             device_type,
 
@@ -28,11 +27,11 @@ with
             age,
             gender,
             ip,
-            ipv6,
+            -- ipv6,
             ifa,
 
-            lon,
-            lat,
+            -- lon,
+            -- lat,
             pincode,
             city,
 
@@ -71,35 +70,41 @@ with
             -- case when series is null then 'NA' else series end as series,
             minduration,
             cast(maxduration as int) as maxduration,
-            case when fp = 0 then 1 else 0 end as null_fps,
+            case when fp is null or fp > 999 then 1 else 0 end as null_fps,
 
             round(cast(fp as float), 6) as fp,
             sum(bids) as bids
 
         from audio_bids
-        where publify_publisher not in ('tim media', 'light fm')
+        where ad_type = 'audio' and publify_publisher not in ('tim media', 'light fm')
         group by all
 
     ),
 
-    big_pubs_apps as (
+    big_apps as (
         select
             bids.*,
+            sum(bids) over (partition by ssp) as ssp_bids_sum,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (partition by ssp, null_fps) as ssp_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (partition by app_final) as app_bids_sum,
+            sum(bids) over (partition by app_final, null_fps) as app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+            sum(bids) over (partition by app_category_tag) as tag_bids_sum,
             sum(bids) over (
-                partition by ad_type, publisher_id, null_fps
-            ) as pub_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
+                partition by app_category_tag, null_fps
+            ) as tag_bids_sum_not_null,
+            sum(bids) over (partition by ssp, app_category_tag) as ssp_tag_bids_sum,
             sum(bids) over (
-                partition by ad_type, app_final, null_fps
-            ) as pub_app_bids_sum_not_null,  -- sum_nulls get removed in the qualify clause
-            sum(bids) over (partition by ad_type, publisher_id) as pub_bids_sum,
-            sum(bids) over (partition by ad_type, app_final) as pub_app_bids_sum,
-            sum(bids) over (partition by ad_type) as total_bids_sum
+                partition by ssp, app_category_tag, null_fps
+            ) as ssp_tag_bids_sum_not_null,
+            sum(bids) over () as total_bids_sum
 
         from cleaned_bids as bids
         where ad_type = 'audio'
-        qualify (pub_app_bids_sum > 100) and null_fps = 0
+        qualify (app_bids_sum > 5000)
 
-    ),
+    )
+
+{#
 
     weighted_means as (
 
@@ -135,7 +140,9 @@ with
             }} as weighted_mean_age_gender
         from big_pubs_apps as bids
 
-    ),
+    )
+
+
 
     weighted_stats as (
 
@@ -187,5 +194,6 @@ with
 
     )
 
+    #}
 select *
-from weighted_stats
+from big_apps

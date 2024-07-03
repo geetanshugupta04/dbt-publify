@@ -97,7 +97,7 @@ with
         select ip, count(distinct ifa) as ifa_counts
 
         from cleaned_bids
-        where device_type = 3
+        where device_type in (3, 7)
         group by all
         having ifa_counts < 5
     ),
